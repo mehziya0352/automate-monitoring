@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  influxdb:
+    image: influxdb:2.7
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - ./influxdb:/var/lib/influxdb
+    environment:
+    - DOCKER_INFLUXDB_INIT_MODE=setup
+    - DOCKER_INFLUXDB_INIT_USERNAME=admin
+    - DOCKER_INFLUXDB_INIT_PASSWORD=admin123
+    - DOCKER_INFLUXDB_INIT_ORG=admin
+    - DOCKER_INFLUXDB_INIT_BUCKET=admin
+    - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=HVqpjfP11LEYe8xcrqjIxCYoDZaxHnA7ITevx4Y8w7d4iRkNUS23NJ5icV5elFQh5RtAP4zhUPokEpIC6x5rAg==
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - influxdb
+    networks:
+      - monitoring
+
+  telegraf:
+    image: telegraf:1.27
+    container_name: telegraf
+    depends_on:
+      - influxdb
+    ports:
+      - "8092:8092/udp"
+      - "8125:8125/udp"
+      - "8094:8094"
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    environment:
+      - HOST_PROC=/host/proc
+      - HOST_SYS=/host/sys
+      - HOST_ETC=/rootfs/etc
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge
+
