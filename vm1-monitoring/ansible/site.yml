@@ -2,7 +2,7 @@
   hosts: monitoring
   become: yes
   vars_files:
-    - ../group_vars/monitoring.yml
+    - ../vars/monitoring.yml
 
   tasks:
     - name: Install Docker
