@@ -5,16 +5,11 @@ services:
     image: influxdb:2.7
     container_name: influxdb
     ports:
-      - "8086:8086"
+      - "${INFLUXDB_PORT}:8086"
     volumes:
       - ./influxdb:/var/lib/influxdb
-    environment:
-    - DOCKER_INFLUXDB_INIT_MODE=setup
-    - DOCKER_INFLUXDB_INIT_USERNAME=admin
-    - DOCKER_INFLUXDB_INIT_PASSWORD=admin123
-    - DOCKER_INFLUXDB_INIT_ORG=admin
-    - DOCKER_INFLUXDB_INIT_BUCKET=admin
-    - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=HVqpjfP11LEYe8xcrqjIxCYoDZaxHnA7ITevx4Y8w7d4iRkNUS23NJ5icV5elFQh5RtAP4zhUPokEpIC6x5rAg==
+    env_file:
+      - .env
     networks:
       - monitoring
 
@@ -22,12 +17,14 @@ services:
     image: grafana/grafana
     container_name: grafana
     ports:
-      - "3000:3000"
+      - "${GRAFANA_PORT}:3000"
     volumes:
       - ./grafana:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
     depends_on:
       - influxdb
+    env_file:
+      - .env
     networks:
       - monitoring
 
@@ -36,10 +33,6 @@ services:
     container_name: telegraf
     depends_on:
       - influxdb
-    ports:
-      - "8092:8092/udp"
-      - "8125:8125/udp"
-      - "8094:8094"
     volumes:
       - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
       - /proc:/host/proc:ro
